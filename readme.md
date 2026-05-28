@@ -1,10 +1,34 @@
-# 99Tech Code Challenge #1 #
+# 99Tech Code Challenge - Ngo Ngoc Viet #1 #
 
-Note that if you fork this repository, your responses may be publicly linked to this repo.  
-Please submit your application along with the solutions attached or linked.   
+## Problem 4 — Sum to n ##
 
-It is important that you minimally attempt the problems, even if you do not arrive at a working solution.
+Three implementations of `sum_to_n(n)` in TypeScript. See
+[src/problem4/README.md](src/problem4/README.md) for the complexity analysis,
+trade-offs, and use cases.
 
-## Submission ##
-You can either provide a link to an online repository, attach the solution in your application, or whichever method you prefer.
-We're cool as long as we can view your solution without any pain.
+### Setup & run ###
+
+From the project root:
+
+```bash
+npm install
+npm run problem4
+```
+
+This runs [src/problem4/run.ts](src/problem4/run.ts), which calls all three
+implementations against sample inputs and prints the results side by side.
+Expected output:
+
+```text
+n    sum_to_n_a    sum_to_n_b    sum_to_n_c
+0    0             0             0
+1    1             1             1
+5    15            15            15
+10   55            55            55
+100  5050          5050          5050
+-3   0             0             0
+3.7  6             6             6
+```
+
+Under the hood, [tsx](https://github.com/privatenumber/tsx) compiles the
+TypeScript on the fly and runs it with Node — no separate build step.
