@@ -32,3 +32,32 @@ n    sum_to_n_a    sum_to_n_b    sum_to_n_c
 
 Under the hood, [tsx](https://github.com/privatenumber/tsx) compiles the
 TypeScript on the fly and runs it with Node — no separate build step.
+
+## Problem 5 — Posts CRUD API ##
+
+A small Express + Sequelize + SQLite backend exposing CRUD for a `posts`
+resource. See [src/problem5/README.md](src/problem5/README.md) for the API
+reference, configuration, and project layout.
+
+### Setup & run (problem 5) ###
+
+From the project root:
+
+```bash
+npm install
+cp src/problem5/.env.example src/problem5/.env
+npm run problem5
+```
+
+The server listens on `http://localhost:3000` and persists data to
+`data/problem5.sqlite`. Quick sanity check:
+
+```bash
+curl http://localhost:3000/health
+# {"ok":true}
+```
+
+A Postman collection covering every endpoint (plus negative tests) ships at
+[src/problem5/postman_collection.json](src/problem5/postman_collection.json) —
+in Postman: **Import → File**. See the
+[problem 5 README](src/problem5/README.md#testing-with-postman) for details.

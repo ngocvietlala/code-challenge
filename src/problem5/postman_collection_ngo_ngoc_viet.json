@@ -1,0 +1,229 @@
+{
+    "info": {
+        "name": "Problem 5 — Posts API - Ngo Ngoc Viet",
+        "description": "CRUD over posts. All endpoints under /api/v1. JSON bodies capped at 100 KB.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:3000",
+            "type": "string"
+        },
+        {
+            "key": "postId",
+            "value": "1",
+            "type": "string"
+        }
+    ],
+    "item": [
+        {
+            "name": "Health",
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/health",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["health"]
+                },
+                "description": "Liveness probe. Mounted before the global rate limiter."
+            }
+        },
+        {
+            "name": "Posts — CRUD",
+            "item": [
+                {
+                    "name": "Create post",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            { "key": "Content-Type", "value": "application/json" }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"title\": \"Hello world\",\n    \"content\": \"first post\",\n    \"status\": 1\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/posts",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "v1", "posts"]
+                        },
+                        "description": "201 → { success, data }. `status` is optional (defaults to 0=Draft). Rate-limited by writeLimiter (10/min)."
+                    }
+                },
+                {
+                    "name": "List posts",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/posts?limit=10&offset=0",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "v1", "posts"],
+                            "query": [
+                                { "key": "limit", "value": "10" },
+                                { "key": "offset", "value": "0" },
+                                { "key": "status", "value": "1", "disabled": true },
+                                { "key": "title", "value": "hello", "disabled": true }
+                            ]
+                        },
+                        "description": "200 → { success, items, meta:{total,limit,offset} }. Enable status/title query params to filter."
+                    }
+                },
+                {
+                    "name": "Show post",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/posts/{{postId}}",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "v1", "posts", "{{postId}}"]
+                        },
+                        "description": "200 → { success, data } or 404 { error }."
+                    }
+                },
+                {
+                    "name": "Update post",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            { "key": "Content-Type", "value": "application/json" }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"status\": 2\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/posts/{{postId}}",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "v1", "posts", "{{postId}}"]
+                        },
+                        "description": "Partial update. Body must contain at least one of: title, content, status. Rate-limited by writeLimiter."
+                    }
+                },
+                {
+                    "name": "Delete post",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/posts/{{postId}}",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "v1", "posts", "{{postId}}"]
+                        },
+                        "description": "204 on success, 404 if the post does not exist. Rate-limited by writeLimiter."
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Negative tests",
+            "item": [
+                {
+                    "name": "Create — invalid status (5)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            { "key": "Content-Type", "value": "application/json" }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"title\": \"x\",\n    \"content\": \"y\",\n    \"status\": 5\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/posts",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "v1", "posts"]
+                        },
+                        "description": "Expect 400 — status must be one of [0, 1, 2]."
+                    }
+                },
+                {
+                    "name": "Create — missing title",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            { "key": "Content-Type", "value": "application/json" }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"content\": \"only content\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/posts",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "v1", "posts"]
+                        },
+                        "description": "Expect 400 — \"title\" is required."
+                    }
+                },
+                {
+                    "name": "Update — empty body",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            { "key": "Content-Type", "value": "application/json" }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/posts/{{postId}}",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "v1", "posts", "{{postId}}"]
+                        },
+                        "description": "Expect 400 — request body must include at least one of: title, content, status."
+                    }
+                },
+                {
+                    "name": "Show — missing id (404)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/posts/9999",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "v1", "posts", "9999"]
+                        },
+                        "description": "Expect 404 — { error: \"post 9999 not found\" }."
+                    }
+                },
+                {
+                    "name": "Wrong prefix (no /v1)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/posts",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "posts"]
+                        },
+                        "description": "Expect 404 — route not found. All endpoints live under /api/v1."
+                    }
+                },
+                {
+                    "name": "Malformed JSON",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            { "key": "Content-Type", "value": "application/json" }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{not json"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/posts",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "v1", "posts"]
+                        },
+                        "description": "Expect 400 — invalid JSON body."
+                    }
+                }
+            ]
+        }
+    ]
+}

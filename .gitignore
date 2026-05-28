@@ -1,2 +1,6 @@
 .idea/
 node_modules/
+
+# Problem 5
+data/
+src/problem5/.env
