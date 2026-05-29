@@ -1,0 +1,35 @@
+sequenceDiagram
+    autonumber
+    actor U as Client
+    participant A as Action service
+    participant R as REST handler
+    participant Rd as Redis
+    participant DB as MySQL
+    participant WS as WS gateway
+    actor Other as Other clients
+
+    Note over U,A: User completes action (out of scope)
+    A->>A: Mint JWS action token<br/>sign(sub, act, delta, jti) w/ ACTION_TOKEN_SECRET
+    A-->>U: { result, actionToken }
+
+    U->>R: POST /scores/increment<br/>Bearer JWT, Idempotency-Key=actionToken, {actionId}
+    R->>R: Verify user JWT
+    R->>R: Verify action token signature (HS256)
+    R->>R: Check claims sub, exp, delta, act
+    R->>Rd: rate-limit check
+    Rd-->>R: allowed
+    R->>Rd: SETNX redeemed:{jti}
+    Rd-->>R: OK (first redemption)
+    R->>DB: BEGIN, INSERT score_events, UPSERT scores, COMMIT
+    DB-->>R: ok, new score
+    R->>Rd: ZINCRBY scoreboard:zset claims.delta user
+    R->>Rd: DEL scoreboard:cache:top10
+    R->>Rd: PUBLISH scoreboard:updates {userId,newScore}
+    R-->>U: 201 {success, data:{userId,score,rank}}
+
+    Rd-->>WS: scoreboard:updates message
+    WS->>Rd: ZREVRANGE scoreboard:zset 0 9 WITHSCORES
+    Rd-->>WS: top 10
+    WS->>WS: diff vs last broadcast
+    WS-->>Other: {type:"update", board:[...]}
+    WS-->>U: {type:"update", board:[...]}

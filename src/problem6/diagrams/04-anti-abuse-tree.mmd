@@ -1,0 +1,21 @@
+flowchart TD
+    A[POST /scores/increment] --> B{User JWT valid?}
+    B -- no --> B1[401 auth_required]
+    B -- yes --> C{Idempotency-Key present?}
+    C -- no --> C1[400 idempotency_required]
+    C -- yes --> D{Action token<br/>signature valid?}
+    D -- no --> D1[401 invalid_token]
+    D -- yes --> E{exp present and<br/>still valid?}
+    E -- expired --> E1[410 token_expired]
+    E -- ok / absent --> F{token.sub == user.sub?}
+    F -- no --> F1[403 token_user_mismatch]
+    F -- yes --> G{1 ≤ token.delta ≤ MAX?}
+    G -- no --> G1[400 validation_failed]
+    G -- yes --> H{body.actionId matches<br/>token.act if present?}
+    H -- no --> H1[400 action_mismatch]
+    H -- yes --> I{Under rate limit?}
+    I -- no --> I1[429 rate_limited]
+    I -- yes --> J{SETNX redeemed:&#123;jti&#125;}
+    J -- already set --> J1[200 + cached result]
+    J -- first time --> K[Write tx + ZINCRBY + PUBLISH]
+    K --> L[201 created]

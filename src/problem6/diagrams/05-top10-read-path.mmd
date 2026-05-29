@@ -1,0 +1,11 @@
+flowchart TD
+    A[GET /scoreboard/top10] --> B{cache:top10 fresh?}
+    B -- yes --> B1[Return cached JSON]
+    B -- no --> C{ZSET populated?}
+    C -- yes --> D[ZREVRANGE 0 9 WITHSCORES]
+    C -- no --> E["SELECT user_id, score<br/>FROM scores<br/>ORDER BY score DESC LIMIT 10"]
+    E --> F[Rebuild ZSET from result]
+    F --> D
+    D --> G[Hydrate usernames<br/>local LRU then MySQL]
+    G --> H[Cache JSON to scoreboard:cache:top10]
+    H --> I[Return JSON]

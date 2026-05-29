@@ -1,0 +1,23 @@
+graph LR
+    subgraph Browser
+        UI[Scoreboard UI]
+    end
+
+    subgraph "API service (1..N instances)"
+        REST["REST handler<br/>/api/v1/scores/increment<br/>/api/v1/scoreboard/top10"]
+        WS["WebSocket gateway<br/>/api/v1/scoreboard/live"]
+    end
+
+    subgraph "Shared infra"
+        MySQL[("MySQL<br/>users, scores, score_events")]
+        Redis[("Redis<br/>ZSET, Pub/Sub, rate-limit, idem")]
+    end
+
+    UI -- "POST /scores/increment<br/>GET /scoreboard/top10" --> REST
+    UI <-. "WS /scoreboard/live" .-> WS
+
+    REST -- "writes" --> MySQL
+    REST -- "ZINCRBY, PUBLISH" --> Redis
+    WS -- "SUBSCRIBE scoreboard:updates" --> Redis
+    WS -- "ZREVRANGE top10" --> Redis
+    WS -. "username hydrate (LRU miss)" .-> MySQL

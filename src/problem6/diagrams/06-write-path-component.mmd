@@ -1,0 +1,7 @@
+graph TD
+    Req[Increment request] --> H[Increment handler]
+    H -- "INSERT score_events<br/>UPSERT scores" --> M[("MySQL<br/>source of truth")]
+    H -- "ZINCRBY<br/>DEL cache<br/>PUBLISH" --> R[("Redis<br/>projection")]
+    R -- "subscribers" --> W[WS broadcast]
+    Recon[Nightly reconciliation job] -. "rebuild ZSET<br/>from MySQL" .-> R
+    M --> Recon

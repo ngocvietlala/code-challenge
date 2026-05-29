@@ -1,0 +1,38 @@
+sequenceDiagram
+    autonumber
+    actor U as Client
+    participant WS as WS gateway
+    participant Rd as Redis
+    participant Auth as Auth service
+
+    U->>WS: HTTP Upgrade /scoreboard/live?token=JWT
+    WS->>WS: Verify JWT, record exp
+    alt invalid token
+        WS-->>U: close 4401
+    else valid
+        WS-->>U: 101 Switching Protocols
+        WS->>Rd: ZREVRANGE 0 9 WITHSCORES
+        Rd-->>WS: top 10
+        WS-->>U: {type:"snapshot", board:[...]}
+        loop every 25s
+            WS-->>U: {type:"ping", ts}
+            U-->>WS: {type:"pong", ts}
+        end
+        Rd-->>WS: scoreboard:updates fired
+        WS-->>U: {type:"update", board:[...]}
+
+        Note over WS: 30s before exp
+        WS-->>U: {type:"auth_expiring", expiresInMs:30000}
+        U->>Auth: refresh access token (out of band)
+        Auth-->>U: new JWT
+
+        alt client reconnects before exp
+            U->>WS: close 1000
+            U->>WS: HTTP Upgrade /scoreboard/live?token=newJWT
+            WS-->>U: 101 + snapshot (resume)
+        else exp reached, no reconnect
+            WS-->>U: close 4401
+            U->>WS: HTTP Upgrade /scoreboard/live?token=newJWT
+            WS-->>U: 101 + snapshot (resume)
+        end
+    end

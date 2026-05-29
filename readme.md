@@ -61,3 +61,20 @@ A Postman collection covering every endpoint (plus negative tests) ships at
 [src/problem5/postman_collection.json](src/problem5/postman_collection.json) —
 in Postman: **Import → File**. See the
 [problem 5 README](src/problem5/README.md#testing-with-postman) for details.
+
+## Problem 6 — Real-time Scoreboard API (specification) ##
+
+Specification only — no runnable code. A backend engineering team is the
+audience. Three documents in [src/problem6/](src/problem6/):
+
+- [README.md](src/problem6/README.md) — the contract: data model,
+  endpoints, auth, anti-abuse rules, live-update mechanism, configuration.
+- [ARCHITECTURE.md](src/problem6/ARCHITECTURE.md) — Mermaid diagrams +
+  rendered SVGs: system context, sequence flows, anti-abuse decision
+  tree, read/write paths.
+- [IMPROVEMENTS.md](src/problem6/IMPROVEMENTS.md) — deferred work, open
+  questions for product, test plan, CI gates.
+
+Stack assumed: Node.js + Express (portable to NestJS) + Redis + MySQL. Live
+updates are pushed over WebSocket; score writes are gated by JWT,
+per-request idempotency keys, and a per-user rate limit.

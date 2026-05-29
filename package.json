@@ -7,6 +7,7 @@
     "problem5": "tsx src/problem5/index.ts"
   },
   "devDependencies": {
+    "@mermaid-js/mermaid-cli": "^11.15.0",
     "@types/express": "^5.0.6",
     "@types/node": "^25.9.1",
     "tsx": "^4.19.2",

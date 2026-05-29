@@ -1,0 +1,8 @@
+flowchart LR
+    subgraph "v1 (this spec)"
+        A1[JWT auth] --> A2[Idempotency key] --> A3[Rate limit] --> A4[Delta ceiling] --> A5[Action allowlist]
+    end
+    subgraph "v2 (improvements)"
+        B1[Action start token] --> B2[Per-IP rate limit] --> B3[Device fingerprint] --> B4[Anomaly scoring] --> B5[CAPTCHA challenge]
+    end
+    A5 -.->|"if abuse observed"| B1
